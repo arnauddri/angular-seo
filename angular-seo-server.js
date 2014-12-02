@@ -8,6 +8,7 @@ if (system.args.length < 3) {
 var server = require('webserver').create();
 var port = parseInt(system.args[1]);
 var urlPrefix = system.args[2];
+var useHashbangs = !!system.args[3] || true;
 
 var parse_qs = function(s) {
     var queryString = {};
@@ -45,9 +46,15 @@ var renderHtml = function(url, cb) {
 
 server.listen(port, function (request, response) {
     var route = parse_qs(request.url)._escaped_fragment_;
-    var url = urlPrefix
-      + request.url.slice(1, request.url.indexOf('?'))
-      + '#!' + decodeURIComponent(route);
+    var url;
+
+    if (useHashbangs) {
+      url = urlPrefix
+        + request.url.slice(1, request.url.indexOf('?'))
+        + '#!' + decodeURIComponent(route);
+    } else {
+      url = urlPrefix + '/' + request.url.slice(1, request.url.indexOf('?'));
+    }
     renderHtml(url, function(html) {
         response.statusCode = 200;
         response.write(html);
